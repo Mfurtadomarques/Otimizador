@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f0f0f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>Otimizador de Corte de Papel</title>
+  <style>
+    :root {
+      --bg: #0f0f0f;
+      --surface: #1a1a1a;
+      --surface2: #242424;
+      --border: #2e2e2e;
+      --accent: #c8f135;
+      --accent-text: #0f0f0f;
+      --text: #f0f0f0;
+      --muted: #888888;
+      --waste: #333333;
+    }
+
+    body.light {
+      --bg: #f5f5f5;
+      --surface: #ffffff;
+      --surface2: #eeeeee;
+      --border: #dddddd;
+      --accent: #2563eb;
+      --accent-text: #ffffff;
+      --text: #111111;
+      --muted: #666666;
+      --waste: #cbd5e1;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.4;
+      padding-bottom: 32px;
+      transition: background-color 0.2s, color 0.2s;
+    }
+
+    header {
+      background-color: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    header h1 {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--accent);
+      letter-spacing: 0.4px;
+    }
+
+    .btn-theme {
+      background-color: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 14px;
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 14px;
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        grid-template-columns: 380px 1fr;
+        align-items: start;
+      }
+    }
+
+    .card {
+      background-color: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .card-title {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      color: var(--muted);
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .row-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 90px;
+      gap: 8px;
+    }
+
+    .row-extra {
+      display: grid;
+      grid-template-columns: 1fr 85px 1fr;
+      gap: 8px;
+    }
+
+    .field label {
+      display: block;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    input, select {
+      width: 100%;
+      background-color: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 9px 10px;
+      font-size: 0.95rem;
+      font-family: "Consolas", monospace;
+      outline: none;
+    }
+
+    input:focus, select:focus {
+      border-color: var(--accent);
+    }
+
+    .btn-calc {
+      width: 100%;
+      background-color: var(--accent);
+      color: var(--accent-text);
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 0.95rem;
+      font-weight: 800;
+      cursor: pointer;
+      letter-spacing: 0.4px;
+      margin-bottom: 12px;
+    }
+
+    .btn-calc:active {
+      opacity: 0.9;
+      transform: scale(0.99);
+    }
+
+    .highlight-box {
+      background-color: var(--surface2);
+      border-left: 4px solid var(--accent);
+      border-radius: 6px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .highlight-box .best-title {
+      font-size: 0.75rem;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .highlight-box .best-value {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-top: 2px;
+    }
+
+    .highlight-box .best-sub {
+      font-size: 0.85rem;
+      color: var(--text);
+      margin-top: 4px;
+    }
+
+    .stats-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 0.85rem;
+    }
+
+    .stat-item {
+      background-color: var(--surface2);
+      padding: 9px 11px;
+      border-radius: 6px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .stat-item strong {
+      font-family: "Consolas", monospace;
+      font-size: 0.92rem;
+    }
+
+    .canvas-wrapper {
+      width: 100%;
+      height: 340px;
+      background-color: var(--bg);
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    @media (min-width: 768px) {
+      .canvas-wrapper {
+        height: 440px;
+      }
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 10px;
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+      display: inline-block;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>OTIMIZADOR DE CORTE</h1>
+    <button class="btn-theme" id="btnTheme">Tema Claro</button>
+  </header>
+
+  <main class="container">
+    <!-- Coluna de Controles e Resultados -->
+    <section>
+      <div class="card">
+        <div class="card-title">1. Medidas da Folha-Mãe</div>
+        <div class="row-grid">
+          <div class="field">
+            <label for="fl">Largura</label>
+            <input type="number" id="fl" value="66" step="any" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="fa">Altura</label>
+            <input type="number" id="fa" value="96" step="any" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="uFolha">Unidade</label>
+            <select id="uFolha">
+              <option value="mm">mm</option>
+              <option value="cm" selected>cm</option>
+              <option value="m">m</option>
+              <option value="pol">pol</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">2. Medidas do Corte Desejado</div>
+        <div class="row-grid">
+          <div class="field">
+            <label for="cl">Largura</label>
+            <input type="number" id="cl" value="90" step="any" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="ca">Altura</label>
+            <input type="number" id="ca" value="50" step="any" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="uCorte">Unidade</label>
+            <select id="uCorte">
+              <option value="mm" selected>mm</option>
+              <option value="cm">cm</option>
+              <option value="m">m</option>
+              <option value="pol">pol</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">3. Sangria e Custo (Opcional)</div>
+        <div class="row-extra">
+          <div class="field">
+            <label for="esp">Sangria/Espaço</label>
+            <input type="number" id="esp" value="0" step="any" inputmode="decimal" />
+          </div>
+          <div class="field">
+            <label for="uEsp">Unid.</label>
+            <select id="uEsp">
+              <option value="mm" selected>mm</option>
+              <option value="cm">cm</option>
+              <option value="m">m</option>
+              <option value="pol">pol</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="custoFolha">Valor Folha (R$)</label>
+            <input type="number" id="custoFolha" value="0" step="any" inputmode="decimal" />
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-calc" id="btnCalc">CALCULAR MELHOR POSIÇÃO</button>
+
+      <div class="card">
+        <div class="highlight-box">
+          <div class="best-title">Melhor Aproveitamento</div>
+          <div class="best-value" id="bestTitle">--</div>
+          <div class="best-sub" id="bestSub">--</div>
+        </div>
+
+        <div class="stats-list" id="statsList"></div>
+      </div>
+    </section>
+
+    <!-- Coluna do Plano Visual -->
+    <section class="card">
+      <div class="card-title">Plano de Corte Visual</div>
+      <div class="canvas-wrapper" id="canvasBox">
+        <canvas id="corteCanvas"></canvas>
+      </div>
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#4caf50"></span> Posição Normal</div>
+        <div class="legend-item"><span class="dot" style="background:#2196f3"></span> Rotacionado 90°</div>
+        <div class="legend-item"><span class="dot" style="background:#ff9800"></span> Aproveitamento Sobra</div>
+        <div class="legend-item"><span class="dot" style="background:#475569"></span> Desperdício</div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const UNIDADES = { mm: 1.0, cm: 10.0, m: 1000.0, pol: 25.4 };
+    const paraMm = (val, un) => val * UNIDADES[un];
+
+    const btnTheme = document.getElementById("btnTheme");
+    btnTheme.addEventListener("click", () => {
+      document.body.classList.toggle("light");
+      btnTheme.textContent = document.body.classList.contains("light") ? "Tema Escuro" : "Tema Claro";
+      calcular();
+    });
+
+    function calcular() {
+      const fl = paraMm(parseFloat(document.getElementById("fl").value) || 0, document.getElementById("uFolha").value);
+      const fa = paraMm(parseFloat(document.getElementById("fa").value) || 0, document.getElementById("uFolha").value);
+      const cl = paraMm(parseFloat(document.getElementById("cl").value) || 0, document.getElementById("uCorte").value);
+      const ca = paraMm(parseFloat(document.getElementById("ca").value) || 0, document.getElementById("uCorte").value);
+      const esp = paraMm(parseFloat(document.getElementById("esp").value) || 0, document.getElementById("uEsp").value);
+      const custoFolha = parseFloat(document.getElementById("custoFolha").value) || 0;
+
+      if (fl <= 0 || fa <= 0 || cl <= 0 || ca <= 0) {
+        document.getElementById("bestTitle").textContent = "Medidas inválidas";
+        document.getElementById("bestSub").textContent = "Informe valores maiores que zero.";
+        return;
+      }
+
+      const clEf = cl + esp;
+      const caEf = ca + esp;
+      const flEf = fl + esp;
+      const faEf = fa + esp;
+
+      // 1. Posição Normal
+      const colsN = Math.floor(flEf / clEf);
+      const linsN = Math.floor(faEf / caEf);
+      const qtdN = colsN * linsN;
+
+      // 2. Posição Rotacionada (90°)
+      const colsR = Math.floor(flEf / caEf);
+      const linsR = Math.floor(faEf / clEf);
+      const qtdR = colsR * linsR;
+
+      // 3. Cenários Mistos (Aproveitamento de sobra)
+      const sobraLN = Math.max(0, fl - colsN * clEf);
+      const exNdC = Math.floor((sobraLN + esp) / caEf);
+      const exNdL = Math.floor(faEf / clEf);
+      const qtdM1 = qtdN + exNdC * exNdL;
+
+      const sobraAN = Math.max(0, fa - linsN * caEf);
+      const exNbC = Math.floor(flEf / caEf);
+      const exNbL = Math.floor((sobraAN + esp) / clEf);
+      const qtdM2 = qtdN + exNbC * exNbL;
+
+      const sobraLR = Math.max(0, fl - colsR * caEf);
+      const exRdC = Math.floor((sobraLR + esp) / clEf);
+      const exRdL = Math.floor(faEf / caEf);
+      const qtdM3 = qtdR + exRdC * exRdL;
+
+      const sobraAR = Math.max(0, fa - linsR * clEf);
+      const exRbC = Math.floor(flEf / clEf);
+      const exRbL = Math.floor((sobraAR + esp) / caEf);
+      const qtdM4 = qtdR + exRbC * exRbL;
+
+      const cenariosMistos = [
+        { qtd: qtdM1, desc: "Normal + Sobra Lateral Rotacionada", modo: "normal_dir", cp: colsN, lp: linsN, ce: exNdC, le: exNdL },
+        { qtd: qtdM2, desc: "Normal + Sobra Inferior Rotacionada", modo: "normal_bx", cp: colsN, lp: linsN, ce: exNbC, le: exNbL },
+        { qtd: qtdM3, desc: "Rotacionada + Sobra Lateral Normal", modo: "rot_dir", cp: colsR, lp: linsR, ce: exRdC, le: exRdL },
+        { qtd: qtdM4, desc: "Rotacionada + Sobra Inferior Normal", modo: "rot_bx", cp: colsR, lp: linsR, ce: exRbC, le: exRbL }
+      ];
+
+      const melhorMisto = cenariosMistos.reduce((max, cur) => (cur.qtd > max.qtd ? cur : max), cenariosMistos[0]);
+
+      const areaFolha = fl * fa;
+      const areaPeca = cl * ca;
+      const aprovN = ((qtdN * areaPeca) / areaFolha) * 100;
+      const aprovR = ((qtdR * areaPeca) / areaFolha) * 100;
+      const aprovM = ((melhorMisto.qtd * areaPeca) / areaFolha) * 100;
+
+      const maxQtd = Math.max(qtdN, qtdR, melhorMisto.qtd);
+      let modoDesenho = "nenhum";
+
+      if (maxQtd === 0) {
+        document.getElementById("bestTitle").textContent = "Corte maior que a folha";
+        document.getElementById("bestSub").textContent = "Nenhuma peça cabe nas dimensões informadas.";
+      } else if (melhorMisto.qtd > Math.max(qtdN, qtdR)) {
+        document.getElementById("bestTitle").textContent = `${melhorMisto.qtd} un/folha (${aprovM.toFixed(1)}% de uso)`;
+        document.getElementById("bestSub").textContent = `Corte Misto: ${melhorMisto.desc}`;
+        modoDesenho = "misto";
+      } else if (qtdN >= qtdR) {
+        document.getElementById("bestTitle").textContent = `${qtdN} un/folha (${aprovN.toFixed(1)}% de uso)`;
+        document.getElementById("bestSub").textContent = `Posição Normal (${colsN} colunas × ${linsN} linhas)`;
+        modoDesenho = "normal";
+      } else {
+        document.getElementById("bestTitle").textContent = `${qtdR} un/folha (${aprovR.toFixed(1)}% de uso)`;
+        document.getElementById("bestSub").textContent = `Posição Rotacionada 90° (${colsR} colunas × ${linsR} linhas)`;
+        modoDesenho = "rotacionado";
+      }
+
+      let htmlStats = `
+        <div class="stat-item">
+          <span>Posição Normal (${colsN}×${linsN})</span>
+          <strong>${qtdN} un. (${aprovN.toFixed(1)}%)</strong>
+        </div>
+        <div class="stat-item">
+          <span>Rotacionado 90° (${colsR}×${linsR})</span>
+          <strong>${qtdR} un. (${aprovR.toFixed(1)}%)</strong>
+        </div>
+        <div class="stat-item">
+          <span>Corte Misto (Máximo)</span>
+          <strong>${melhorMisto.qtd} un. (${aprovM.toFixed(1)}%)</strong>
+        </div>
+      `;
+
+      if (custoFolha > 0 && maxQtd > 0) {
+        const unit = custoFolha / maxQtd;
+        htmlStats += `
+          <div class="stat-item" style="border: 1px solid var(--accent);">
+            <span>Custo Unitário Estimado</span>
+            <strong style="color: var(--accent);">R$ ${unit.toFixed(4)}</strong>
+          </div>
+        `;
+      }
+
+      document.getElementById("statsList").innerHTML = htmlStats;
+      desenhar(fl, fa, cl, ca, esp, colsN, linsN, colsR, linsR, melhorMisto, modoDesenho);
+    }
+
+    function desenhar(fl, fa, cl, ca, esp, colsN, linsN, colsR, linsR, misto, modo) {
+      const box = document.getElementById("canvasBox");
+      const canvas = document.getElementById("corteCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const dpr = window.devicePixelRatio || 1;
+      const width = box.clientWidth;
+      const height = box.clientHeight;
+
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      ctx.scale(dpr, dpr);
+
+      ctx.clearRect(0, 0, width, height);
+
+      const pad = 24;
+      const escala = Math.min((width - pad * 2) / fl, (height - pad * 2) / fa);
+      const ox = (width - fl * escala) / 2;
+      const oy = (height - fa * escala) / 2;
+
+      const isLight = document.body.classList.contains("light");
+
+      // Folha base (desperdício)
+      ctx.fillStyle = isLight ? "#cbd5e1" : "#333333";
+      ctx.fillRect(ox, oy, fl * escala, fa * escala);
+      ctx.strokeStyle = isLight ? "#111111" : "#f0f0f0";
+      ctx.lineWidth = 2;
+      ctx.strokeRect(ox, oy, fl * escala, fa * escala);
+
+      const desenharGrade = (x0, y0, cols, lins, wp, hp, cor) => {
+        ctx.fillStyle = cor;
+        ctx.strokeStyle = isLight ? "#ffffff" : "#0f0f0f";
+        ctx.lineWidth = 1;
+        for (let c = 0; c < cols; c++) {
+          for (let l = 0; l < lins; l++) {
+            const px = ox + (x0 + c * (wp + esp)) * escala;
+            const py = oy + (y0 + l * (hp + esp)) * escala;
+            const pw = wp * escala;
+            const ph = hp * escala;
+            ctx.fillRect(px, py, pw, ph);
+            ctx.strokeRect(px, py, pw, ph);
+          }
+        }
+      };
+
+      if (modo === "normal") {
+        desenharGrade(0, 0, colsN, linsN, cl, ca, "#4caf50");
+      } else if (modo === "rotacionado") {
+        desenharGrade(0, 0, colsR, linsR, ca, cl, "#2196f3");
+      } else if (modo === "misto") {
+        if (misto.modo === "normal_dir") {
+          desenharGrade(0, 0, misto.cp, misto.lp, cl, ca, "#4caf50");
+          desenharGrade(misto.cp * (cl + esp), 0, misto.ce, misto.le, ca, cl, "#ff9800");
+        } else if (misto.modo === "normal_bx") {
+          desenharGrade(0, 0, misto.cp, misto.lp, cl, ca, "#4caf50");
+          desenharGrade(0, misto.lp * (ca + esp), misto.ce, misto.le, ca, cl, "#ff9800");
+        } else if (misto.modo === "rot_dir") {
+          desenharGrade(0, 0, misto.cp, misto.lp, ca, cl, "#2196f3");
+          desenharGrade(misto.cp * (ca + esp), 0, misto.ce, misto.le, cl, ca, "#ff9800");
+        } else if (misto.modo === "rot_bx") {
+          desenharGrade(0, 0, misto.cp, misto.lp, ca, cl, "#2196f3");
+          desenharGrade(0, misto.lp * (cl + esp), misto.ce, misto.le, cl, ca, "#ff9800");
+        }
+      }
+    }
+
+    document.getElementById("btnCalc").addEventListener("click", calcular);
+    document.querySelectorAll("input, select").forEach(el => el.addEventListener("input", calcular));
+    window.addEventListener("resize", calcular);
+
+    // Cálculo inicial ao carregar
+    calcular();
+  </script>
+</body>
+</html>
