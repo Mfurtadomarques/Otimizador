@@ -1,1 +1,12 @@
-
+{
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "display": "standalone",
+  "name": "mfurtadomarques.github",
+  "orientation": "any",
+  "scope": "/",
+  "short_name": "mfurtadomarques.github",
+  "start_url": "/",
+  "theme_color": "#0f0f0f",
+  "id": "Otimizador",
+  "description": "App otimizador de corte de papel"
